@@ -144,8 +144,10 @@ public class ToonBeaconDeal implements BeaconConsumer {
                 }
             }
             if (temp != null) {
+                temp.removeUUID(uuid);
                 temp.removeListener(attribute, uuid);
-                removeFeature(temp);
+                if (temp.getListener(attribute).size() == 0)
+                    removeFeature(temp);
             }
         }
     }

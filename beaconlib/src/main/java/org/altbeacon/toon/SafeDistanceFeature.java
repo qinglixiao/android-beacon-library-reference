@@ -9,6 +9,7 @@ import org.altbeacon.beacon.Region;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Created by gfy on 2016/3/4.
@@ -37,34 +38,22 @@ public class SafeDistanceFeature extends Feature {
             if (listeners == null)
                 return;
 
-            if (beacons.size() == 0) {
-                for (int i = 0; i < uuids.size(); i++) {
-                    String uuid = uuids.get(i);
-                    if (getDeviceRepeat(uuid) > Params.REPEAT_SCAN_COUNT) {
-                        if (listeners.containsKey(uuid)) {
-                            BeanCallBack.OnFeatureChangedListener listener = listeners.get(uuid);
-                            listener.onFeatureChanged(uuid, Params.DISTANCE_OUT, attribute);
-                        }
+            for (Map.Entry<String, BeanCallBack.OnFeatureChangedListener> item : listeners.entrySet()) {
+                Beacon beacon = getBeaconFrom(item.getKey(), beacons);
+                if (beacon != null) {
+                    if (beacon.getDistance() > Params.DISTANCE) {
+                        item.getValue().onFeatureChanged(item.getKey(), Params.DISTANCE_OUT, attribute);
+                    } else {
+                        resetCount(item.getKey());
+                        item.getValue().onFeatureChanged(item.getKey(), Params.DISTANCE_IN, attribute);
                     }
-                }
-                return;
-            }
 
-            Iterator<Beacon> iterator = beacons.iterator();
-            while (iterator.hasNext()) {
-                Beacon beacon = iterator.next();
-                String uuid = beacon.getId1().toString();
-                if (SafeDistanceFeature.this.uuids.contains(uuid)) {
-                    if (listeners.containsKey(uuid)) {
-                        BeanCallBack.OnFeatureChangedListener listener = listeners.get(uuid);
-                        if (beacon.getDistance() > Params.DISTANCE) {
-                            listener.onFeatureChanged(uuid, Params.DISTANCE_OUT, attribute);
-                        } else {
-                            resetCount(uuid);
-                            listener.onFeatureChanged(uuid, Params.DISTANCE_IN, attribute);
-                        }
+                } else {
+                    if (getDeviceRepeat(item.getKey()) > Params.REPEAT_SCAN_COUNT) {
+                        item.getValue().onFeatureChanged(item.getKey(), Params.DISTANCE_OUT, attribute);
                     }
                 }
+
             }
         }
     }
@@ -78,15 +67,26 @@ public class SafeDistanceFeature extends Feature {
             } else
                 record.put(uuid, 1);
         }
-        Log.d(TAG,"设备:"+uuid+"  repeat:"+record.get(uuid));
+        Log.d(TAG, "设备:" + uuid + "  repeat:" + record.get(uuid));
         return record.get(uuid);
     }
 
     private void resetCount(String uuid) {
         if (!TextUtils.isEmpty(uuid) && record.containsKey(uuid)) {
-            Log.d(TAG,"设备:"+uuid+"  重置计数：0");
+            Log.d(TAG, "设备:" + uuid + "  重置计数：0");
             record.put(uuid, 0);
         }
+    }
+
+    private Beacon getBeaconFrom(String target_uuid, Collection<Beacon> beacons) {
+        Iterator<Beacon> iterator = beacons.iterator();
+        while (iterator.hasNext()) {
+            Beacon beacon = iterator.next();
+            if (beacon.getId1().toString().equals(target_uuid)) {
+                return beacon;
+            }
+        }
+        return null;
     }
 
 }

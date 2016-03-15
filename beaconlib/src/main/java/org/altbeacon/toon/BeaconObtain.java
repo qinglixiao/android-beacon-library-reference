@@ -97,7 +97,7 @@ public class BeaconObtain {
                     builder.setRssi(ibeacon.rssi);
                     builder.setBluetoothName(ibeacon.name);
                     if (listener != null) {
-                        listener.onBeaconObtain(builder.build(), 0);
+                        listener.onBeaconObtain(builder.build(), status);
                     }
                 }
             };

@@ -103,7 +103,7 @@ public abstract class Feature {
         public static final double DISTANCE = 5;
         public static final String DISTANCE_IN = "distance_in";
         public static final String DISTANCE_OUT = "distance_out";
-        public static final int REPEAT_SCAN_COUNT = 5;
+        public static final int REPEAT_SCAN_COUNT = 8;
     }
 
 }
